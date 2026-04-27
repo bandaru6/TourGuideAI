@@ -22,6 +22,10 @@ class DriveEventType(str, Enum):
     REROUTE_NEEDED = "reroute_needed"
     SEGMENT_CHANGED = "segment_changed"
     PLAYLIST_CHANGE = "playlist_change"
+    ETA_UPDATE = "eta_update"
+    SCHEDULE_COMPRESSION = "schedule_compression"
+    REROUTE_COMPLETE = "reroute_complete"
+    NARRATION_TEXT = "narration_text"
 
 
 class DriveEvent(BaseModel):

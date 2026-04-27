@@ -36,7 +36,13 @@
     },
     "plugins": [
       "expo-router",
-      "expo-location"
-    ]
+      "expo-location",
+      "expo-speech"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": ""
+      }
+    }
   }
 }

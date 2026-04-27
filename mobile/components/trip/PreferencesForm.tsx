@@ -5,6 +5,7 @@ import {
   Text,
   Pressable,
   ScrollView,
+  TextInput,
   useColorScheme,
 } from "react-native";
 import type { UserPreferences } from "../../types";
@@ -42,13 +43,31 @@ export default function PreferencesForm({
   const [selectedInterests, setSelectedInterests] =
     useState<string[]>(initialInterests);
   const [avoidTypes, setAvoidTypes] = useState<string[]>([]);
+  const [evMode, setEvMode] = useState(false);
+  const [vehicleRange, setVehicleRange] = useState("");
+
+  const emitChange = (
+    interests: string[],
+    avoid: string[],
+    ev: boolean,
+    range: string
+  ) => {
+    const prefs: Partial<UserPreferences> = {
+      interests,
+      avoid_types: avoid,
+    };
+    if (ev && range) {
+      prefs.vehicle_range_km = parseFloat(range) || null;
+    }
+    onPreferencesChange(prefs);
+  };
 
   const toggleInterest = (interest: string) => {
     const next = selectedInterests.includes(interest)
       ? selectedInterests.filter((i) => i !== interest)
       : [...selectedInterests, interest];
     setSelectedInterests(next);
-    onPreferencesChange({ interests: next, avoid_types: avoidTypes });
+    emitChange(next, avoidTypes, evMode, vehicleRange);
   };
 
   const toggleAvoid = (type: string) => {
@@ -56,7 +75,13 @@ export default function PreferencesForm({
       ? avoidTypes.filter((t) => t !== type)
       : [...avoidTypes, type];
     setAvoidTypes(next);
-    onPreferencesChange({ interests: selectedInterests, avoid_types: next });
+    emitChange(selectedInterests, next, evMode, vehicleRange);
+  };
+
+  const toggleEvMode = () => {
+    const next = !evMode;
+    setEvMode(next);
+    emitChange(selectedInterests, avoidTypes, next, vehicleRange);
   };
 
   return (
@@ -128,6 +153,43 @@ export default function PreferencesForm({
           );
         })}
       </ScrollView>
+
+      <Text style={[styles.sectionTitle, isDark && styles.textDark]}>
+        EV Mode
+      </Text>
+      <View style={styles.evRow}>
+        <Pressable
+          style={[
+            styles.chip,
+            evMode && styles.chipSelected,
+            isDark && !evMode && styles.chipDark,
+          ]}
+          onPress={toggleEvMode}
+        >
+          <Text
+            style={[
+              styles.chipText,
+              evMode && styles.chipTextSelected,
+              isDark && !evMode && styles.chipTextDark,
+            ]}
+          >
+            EV Vehicle
+          </Text>
+        </Pressable>
+        {evMode && (
+          <TextInput
+            style={[styles.rangeInput, isDark && styles.rangeInputDark]}
+            placeholder="Range (km)"
+            placeholderTextColor="#9CA3AF"
+            keyboardType="numeric"
+            value={vehicleRange}
+            onChangeText={(text) => {
+              setVehicleRange(text);
+              emitChange(selectedInterests, avoidTypes, true, text);
+            }}
+          />
+        )}
+      </View>
     </View>
   );
 }
@@ -186,5 +248,27 @@ const styles = StyleSheet.create({
   chipAvoidTextSelected: {
     color: "#fff",
     fontWeight: "600",
+  },
+  evRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    paddingBottom: 4,
+  },
+  rangeInput: {
+    flex: 1,
+    height: 36,
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    fontSize: 13,
+    color: "#374151",
+    backgroundColor: "#F9FAFB",
+  },
+  rangeInputDark: {
+    borderColor: "#4B5563",
+    color: "#D1D5DB",
+    backgroundColor: "#374151",
   },
 });

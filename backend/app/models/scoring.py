@@ -20,3 +20,4 @@ class StopScore(BaseModel):
     total_score: float
     selection_reason: str
     weights: RankingWeights = RankingWeights()
+    cluster_count: int = 1

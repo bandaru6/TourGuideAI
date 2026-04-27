@@ -10,3 +10,5 @@ class UserPreferences(BaseModel):
     stop_interval_max: int = 180
     scenic_priority: float = 0.5
     free_text: str = ""
+    vehicle_range_km: float | None = None
+    max_detour_per_stop_min: int | None = None

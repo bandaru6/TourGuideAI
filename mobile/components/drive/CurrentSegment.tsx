@@ -12,19 +12,32 @@ export default function CurrentSegment({ segment, progress }: Props) {
 
   if (!segment) return null;
 
+  const effectiveDuration = segment.adjusted_duration_s || segment.duration_s;
   const remainingMin = Math.round(
-    (segment.duration_s * (1 - progress)) / 60
+    (effectiveDuration * (1 - progress)) / 60
   );
   const remainingKm = ((segment.distance_m * (1 - progress)) / 1000).toFixed(
     1
   );
 
+  const trafficColor =
+    segment.traffic_factor > 0.6
+      ? "#EF4444"
+      : segment.traffic_factor > 0.3
+      ? "#F59E0B"
+      : "#10B981";
+
   return (
     <View style={[styles.container, isDark && styles.containerDark]}>
       <View style={styles.header}>
-        <Text style={[styles.label, isDark && styles.labelDark]}>
-          Current Segment
-        </Text>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+          <Text style={[styles.label, isDark && styles.labelDark]}>
+            Current Segment
+          </Text>
+          <View
+            style={[styles.trafficDot, { backgroundColor: trafficColor }]}
+          />
+        </View>
         <Text style={[styles.eta, isDark && styles.etaDark]}>
           {remainingMin} min left
         </Text>
@@ -109,5 +122,10 @@ const styles = StyleSheet.create({
   },
   distanceDark: {
     color: "#6B7280",
+  },
+  trafficDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
   },
 });

@@ -7,6 +7,8 @@ export interface UserPreferences {
   stop_interval_max: number;
   scenic_priority: number;
   free_text: string;
+  vehicle_range_km: number | null;
+  max_detour_per_stop_min: number | null;
 }
 
 export interface StopScore {
@@ -18,6 +20,7 @@ export interface StopScore {
   congestion_penalty: number;
   total_score: number;
   selection_reason: string;
+  cluster_count: number;
 }
 
 export interface FunFact {
@@ -42,6 +45,8 @@ export interface Stop {
   detour_distance_m: number;
   score: StopScore | null;
   fun_facts: FunFact[];
+  estimated_arrival_time: string | null;
+  open_hours: string | null;
 }
 
 export interface Segment {
@@ -50,6 +55,8 @@ export interface Segment {
   polyline: string;
   distance_m: number;
   duration_s: number;
+  traffic_factor: number;
+  adjusted_duration_s: number;
 }
 
 export interface CorridorPoint {
@@ -88,6 +95,7 @@ export interface Trip {
   corridor: CorridorGeometry | null;
   total_distance_m: number;
   total_duration_s: number;
+  adjusted_total_duration_s: number;
   route_polyline: string;
   departure_time: string | null;
 }
@@ -106,4 +114,10 @@ export interface CreateTripRequest {
   destination: string;
   preferences?: Partial<UserPreferences>;
   departure_time?: string;
+}
+
+export interface VoiceCommandResponse {
+  command: string;
+  confidence: number;
+  response_text: string;
 }

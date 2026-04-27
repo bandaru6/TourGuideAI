@@ -19,7 +19,9 @@
     "stop_interval_min": 60,
     "stop_interval_max": 150,
     "scenic_priority": 0.7,
-    "free_text": ""
+    "free_text": "",
+    "vehicle_range_km": null,
+    "max_detour_per_stop_min": null
   },
   "state": "ready",
   "stops": [
@@ -43,7 +45,8 @@
         "detour_penalty": 0.05,
         "congestion_penalty": 0.02,
         "total_score": 0.82,
-        "selection_reason": "Highly scenic coastal stop with excellent timing \u2014 ideal first break after 30 min of driving."
+        "selection_reason": "Highly scenic coastal stop with excellent timing \u2014 ideal first break after 30 min of driving.",
+        "cluster_count": 3
       },
       "fun_facts": [
         {
@@ -52,7 +55,9 @@
           "trigger_lng": -122.4286,
           "radius_m": 2000.0
         }
-      ]
+      ],
+      "estimated_arrival_time": "08:34",
+      "open_hours": null
     },
     {
       "id": "bae51a8a-680b-4277-bf98-0f8528972aa9",
@@ -74,7 +79,8 @@
         "detour_penalty": 0.08,
         "congestion_penalty": 0.03,
         "total_score": 0.78,
-        "selection_reason": "Top-rated seafood restaurant with strong meal-time alignment \u2014 great lunch stop near Monterey."
+        "selection_reason": "Top-rated seafood restaurant with strong meal-time alignment \u2014 great lunch stop near Monterey.",
+        "cluster_count": 5
       },
       "fun_facts": [
         {
@@ -83,7 +89,9 @@
           "trigger_lng": -121.894,
           "radius_m": 3000.0
         }
-      ]
+      ],
+      "estimated_arrival_time": "10:39",
+      "open_hours": "07:00-20:00"
     },
     {
       "id": "7b69afe5-c36d-4dad-bab5-f388884bbaf7",
@@ -105,7 +113,8 @@
         "detour_penalty": 0.0,
         "congestion_penalty": 0.05,
         "total_score": 0.88,
-        "selection_reason": "Iconic Big Sur landmark directly on route \u2014 highest scenic value of all candidates."
+        "selection_reason": "Iconic Big Sur landmark directly on route \u2014 highest scenic value of all candidates.",
+        "cluster_count": 2
       },
       "fun_facts": [
         {
@@ -114,7 +123,9 @@
           "trigger_lng": -121.9016,
           "radius_m": 1500.0
         }
-      ]
+      ],
+      "estimated_arrival_time": "12:10",
+      "open_hours": null
     },
     {
       "id": "501ca4c7-59fb-422e-a371-5c0806313c4b",
@@ -136,7 +147,8 @@
         "detour_penalty": 0.12,
         "congestion_penalty": 0.04,
         "total_score": 0.72,
-        "selection_reason": "Nationally significant historic attraction with high interest match \u2014 short detour from route."
+        "selection_reason": "Nationally significant historic attraction with high interest match \u2014 short detour from route.",
+        "cluster_count": 1
       },
       "fun_facts": [
         {
@@ -145,7 +157,9 @@
           "trigger_lng": -121.1685,
           "radius_m": 2500.0
         }
-      ]
+      ],
+      "estimated_arrival_time": "14:06",
+      "open_hours": "09:00-17:00"
     },
     {
       "id": "c9b565a9-d133-4321-b94f-6fcc58ae84e9",
@@ -167,7 +181,8 @@
         "detour_penalty": 0.06,
         "congestion_penalty": 0.08,
         "total_score": 0.75,
-        "selection_reason": "Scenic waterfront landmark with food options \u2014 good spacing between previous and next stop."
+        "selection_reason": "Scenic waterfront landmark with food options \u2014 good spacing between previous and next stop.",
+        "cluster_count": 4
       },
       "fun_facts": [
         {
@@ -176,7 +191,9 @@
           "trigger_lng": -119.685,
           "radius_m": 1000.0
         }
-      ]
+      ],
+      "estimated_arrival_time": "17:22",
+      "open_hours": null
     },
     {
       "id": "26912c94-dd0b-4874-95cd-75d4d8fdc9b5",
@@ -198,7 +215,8 @@
         "detour_penalty": 0.1,
         "congestion_penalty": 0.06,
         "total_score": 0.76,
-        "selection_reason": "Scenic Malibu beach with panoramic views \u2014 ideal last stop to enjoy before entering LA."
+        "selection_reason": "Scenic Malibu beach with panoramic views \u2014 ideal last stop to enjoy before entering LA.",
+        "cluster_count": 2
       },
       "fun_facts": [
         {
@@ -207,7 +225,9 @@
           "trigger_lng": -118.8066,
           "radius_m": 2000.0
         }
-      ]
+      ],
+      "estimated_arrival_time": "19:04",
+      "open_hours": null
     }
   ],
   "segments": [
@@ -216,49 +236,63 @@
       "to_name": "Half Moon Bay State Beach",
       "polyline": "c|peFf`ejVrx{@nx@",
       "distance_m": 45011.8,
-      "duration_s": 2046.0
+      "duration_s": 2046.0,
+      "traffic_factor": 0.55,
+      "adjusted_duration_s": 2946.2
     },
     {
       "from_name": "Half Moon Bay State Beach",
       "to_name": "Phil s Fish Market & Eatery",
       "polyline": "obtcFvyfjVfceDglgB",
       "distance_m": 137562.4,
-      "duration_s": 6252.8
+      "duration_s": 6252.8,
+      "traffic_factor": 0.35,
+      "adjusted_duration_s": 8003.6
     },
     {
       "from_name": "Phil s Fish Market & Eatery",
       "to_name": "Bixby Creek Bridge Viewpoint",
       "polyline": "g~m~Enl~fV~dn@nn@",
       "distance_m": 34935.3,
-      "duration_s": 1588.0
+      "duration_s": 1588.0,
+      "traffic_factor": 0.2,
+      "adjusted_duration_s": 1842.1
     },
     {
       "from_name": "Bixby Creek Bridge Viewpoint",
       "to_name": "Hearst Castle Visitor Center",
       "polyline": "gx~|E~{_gVn~dC{dnC",
       "distance_m": 131065.1,
-      "duration_s": 5957.5
+      "duration_s": 5957.5,
+      "traffic_factor": 0.2,
+      "adjusted_duration_s": 6910.7
     },
     {
       "from_name": "Hearst Castle Visitor Center",
       "to_name": "Stearns Wharf, Santa Barbara",
       "polyline": "wxxxEbvpbVfbxF{v`H",
       "distance_m": 254573.5,
-      "duration_s": 11571.5
+      "duration_s": 11571.5,
+      "traffic_factor": 0.35,
+      "adjusted_duration_s": 14811.5
     },
     {
       "from_name": "Stearns Wharf, Santa Barbara",
       "to_name": "Point Dume State Beach",
       "polyline": "ou_qEf~nyUrunA_qjD",
       "distance_m": 120446.5,
-      "duration_s": 5474.8
+      "duration_s": 5474.8,
+      "traffic_factor": 0.55,
+      "adjusted_duration_s": 7883.7
     },
     {
       "from_name": "Point Dume State Beach",
       "to_name": "Los Angeles, CA",
       "polyline": "{~onEflctUkyHc}lB",
       "distance_m": 67827.3,
-      "duration_s": 3083.1
+      "duration_s": 3083.1,
+      "traffic_factor": 0.7,
+      "adjusted_duration_s": 4808.8
     }
   ],
   "corridor": {
@@ -336,6 +370,7 @@
   },
   "total_distance_m": 600000.0,
   "total_duration_s": 25200.0,
+  "adjusted_total_duration_s": 47206.6,
   "route_polyline": "c|peFf`ejVrx{@nx@jr~AgulAz_hAsqYfl_Ag|ObryBopwBjheAswfBnjgDwwzDzkZczmAfvp@{ocBkcDsugB",
   "departure_time": "2026-04-22T08:00:00"
 }

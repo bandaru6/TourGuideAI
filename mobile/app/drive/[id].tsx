@@ -11,11 +11,16 @@ import {
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useTrip } from "../../hooks/useTrip";
 import { useDriveSocket } from "../../hooks/useDriveSocket";
+import { useNarrationQueue } from "../../hooks/useNarrationQueue";
+import { useVoiceInput } from "../../hooks/useVoiceInput";
 import { decodePolyline, interpolateAlongPolyline } from "../../services/polyline";
+import { getTrip, sendVoiceCommand } from "../../services/api";
 import DriveMap from "../../components/map/DriveMap";
 import CurrentSegment from "../../components/drive/CurrentSegment";
 import UpcomingStop from "../../components/drive/UpcomingStop";
 import FunFactPopup from "../../components/drive/FunFactPopup";
+import NarrationControl from "../../components/drive/NarrationControl";
+import VoiceInputButton from "../../components/drive/VoiceInputButton";
 import type { Stop, DriveEvent } from "../../types";
 
 const SPEED_OPTIONS = [1, 2, 5, 10];
@@ -25,7 +30,7 @@ export default function DriveView() {
   const router = useRouter();
   const isDark = useColorScheme() === "dark";
   const mapRef = useRef<any>(null);
-  const { trip } = useTrip(id);
+  const { trip, refresh } = useTrip(id);
 
   const [isSimulating, setIsSimulating] = useState(false);
   const [speedMultiplier, setSpeedMultiplier] = useState(2);
@@ -48,10 +53,38 @@ export default function DriveView() {
   const [toastMessage, setToastMessage] = useState("");
   const toastOpacity = useRef(new Animated.Value(0)).current;
 
+  // Voice narration
+  const narration = useNarrationQueue();
+
+  // Voice input
+  const voice = useVoiceInput();
+
   const routeCoords = React.useMemo(
     () => (trip?.route_polyline ? decodePolyline(trip.route_polyline) : []),
     [trip?.route_polyline]
   );
+
+  // Handle voice transcript
+  useEffect(() => {
+    if (!voice.transcript || !id || !trip) return;
+    sendVoiceCommand(
+      id,
+      voice.transcript,
+      carPosition?.latitude,
+      carPosition?.longitude
+    ).then((res) => {
+      if (res.response_text) {
+        narration.enqueue(res.response_text);
+        showToast(res.response_text);
+      }
+      // If skip/reroute, re-fetch trip
+      if (res.command === "skip_stop") {
+        refresh();
+      }
+    }).catch(() => {
+      showToast("Voice command failed");
+    });
+  }, [voice.transcript]);
 
   // Handle drive events
   useEffect(() => {
@@ -75,11 +108,25 @@ export default function DriveView() {
         setFunFactText(event.message);
         setShowFunFact(true);
         break;
+      case "narration_text":
+        narration.enqueue(event.message);
+        break;
       case "missed_stop":
         showToast(event.message || "Missed a stop");
         break;
       case "segment_changed":
         setCurrentSegmentIdx((i) => i + 1);
+        break;
+      case "eta_update":
+        // Could update a state var for ETA display
+        break;
+      case "schedule_compression":
+        showToast(event.message || "Running behind schedule");
+        break;
+      case "reroute_complete":
+        showToast("Route recalculated");
+        refresh();
+        setCurrentSegmentIdx(0);
         break;
     }
   }, [lastEvent, trip]);
@@ -150,6 +197,14 @@ export default function DriveView() {
     setIsSimulating(false);
   }, []);
 
+  const handleVoicePress = useCallback(() => {
+    if (voice.listening) {
+      voice.stopListening();
+    } else {
+      voice.startListening();
+    }
+  }, [voice]);
+
   if (!trip) {
     return (
       <SafeAreaView style={[styles.flex, styles.center]}>
@@ -207,6 +262,12 @@ export default function DriveView() {
           </Text>
         </Pressable>
 
+        {/* Narration control */}
+        <NarrationControl
+          enabled={narration.enabled}
+          onToggle={narration.toggle}
+        />
+
         {/* Connection indicator */}
         <View
           style={[
@@ -229,23 +290,30 @@ export default function DriveView() {
         <CurrentSegment segment={currentSegment} progress={progress} />
 
         <View style={styles.controls}>
-          {!isSimulating ? (
-            <Pressable
-              style={styles.startButton}
-              onPress={handleStartSimulation}
-            >
-              <Text style={styles.startButtonText}>
-                {progress > 0 ? "Resume" : "Start Simulation"}
-              </Text>
-            </Pressable>
-          ) : (
-            <Pressable
-              style={styles.stopButton}
-              onPress={handleStopSimulation}
-            >
-              <Text style={styles.stopButtonText}>Pause</Text>
-            </Pressable>
-          )}
+          <View style={styles.controlRow}>
+            {!isSimulating ? (
+              <Pressable
+                style={[styles.startButton, { flex: 1 }]}
+                onPress={handleStartSimulation}
+              >
+                <Text style={styles.startButtonText}>
+                  {progress > 0 ? "Resume" : "Start Simulation"}
+                </Text>
+              </Pressable>
+            ) : (
+              <Pressable
+                style={[styles.stopButton, { flex: 1 }]}
+                onPress={handleStopSimulation}
+              >
+                <Text style={styles.stopButtonText}>Pause</Text>
+              </Pressable>
+            )}
+            <VoiceInputButton
+              listening={voice.listening}
+              onPress={handleVoicePress}
+              supported={voice.supported}
+            />
+          </View>
 
           <View style={styles.speedRow}>
             <Text style={[styles.speedLabel, isDark && styles.speedLabelDark]}>
@@ -311,14 +379,20 @@ const styles = StyleSheet.create({
   },
   bottomPanelDark: { backgroundColor: "#1F2937" },
   controls: { marginTop: 12 },
+  controlRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    marginBottom: 12,
+  },
   startButton: {
     backgroundColor: "#4F46E5", borderRadius: 12,
-    paddingVertical: 14, alignItems: "center", marginBottom: 12,
+    paddingVertical: 14, alignItems: "center",
   },
   startButtonText: { color: "#fff", fontSize: 16, fontWeight: "700" },
   stopButton: {
     backgroundColor: "#EF4444", borderRadius: 12,
-    paddingVertical: 14, alignItems: "center", marginBottom: 12,
+    paddingVertical: 14, alignItems: "center",
   },
   stopButtonText: { color: "#fff", fontSize: 16, fontWeight: "700" },
   speedRow: {

@@ -145,6 +145,33 @@ class MapsService:
         _geocode_cache[key] = result
         return result
 
+    async def get_route_from_coords(
+        self, lat: float, lng: float, destination: str
+    ) -> dict:
+        """Get route from GPS coordinates to a destination (skip geocoding for origin)."""
+        dest_lat, dest_lng = await self._geocode(destination)
+        coords = f"{lng},{lat};{dest_lng},{dest_lat}"
+
+        async def _do_route():
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                resp = await client.get(
+                    f"{self.OSRM_ROUTE_URL}/{coords}",
+                    params={"overview": "full", "geometries": "polyline", "steps": "false"},
+                )
+                resp.raise_for_status()
+                return resp.json()
+
+        data = await _retry_request(_do_route)
+        if data.get("code") != "Ok" or not data.get("routes"):
+            raise ValueError(f"OSRM routing failed: {data.get('code', 'unknown error')}")
+
+        route = data["routes"][0]
+        return {
+            "polyline": route["geometry"],
+            "distance_m": route["distance"],
+            "duration_s": route["duration"],
+        }
+
     async def get_route(self, origin: str, destination: str) -> dict:
         """
         Get a driving route using OSRM (free, no API key).
@@ -292,6 +319,9 @@ class MapsService:
                 except ValueError:
                     pass
 
+            # Extract opening hours from OSM tags
+            opening_hours = tags.get("opening_hours")
+
             all_candidates[osm_id] = CandidateStop(
                 place_id=osm_id,
                 name=name,
@@ -302,9 +332,73 @@ class MapsService:
                 distance_to_route_m=min_dist,
                 distance_along_route_m=along_m,
                 nearest_corridor_point_idx=nearest_idx,
+                opening_hours=opening_hours,
             )
 
         return list(all_candidates.values())
+
+    async def search_charging_stations(
+        self,
+        corridor: CorridorGeometry,
+        max_results: int = 20,
+    ) -> list[CandidateStop]:
+        """Search for EV charging stations along the corridor."""
+        polyline_points = decode_polyline(corridor.route_polyline)
+        n = len(corridor.sample_points)
+        radius_m = int(min(corridor.corridor_width_m, 15000))
+
+        # Sample every 1/4 of route
+        indices = [n * i // 4 for i in range(1, 4)]
+        points = [corridor.sample_points[i] for i in indices if i < n]
+
+        clauses = "".join(
+            f'node["amenity"="charging_station"](around:{radius_m},{cp.lat:.5f},{cp.lng:.5f});'
+            for cp in points
+        )
+        query = f'[out:json][timeout:15];({clauses});out center tags {max_results};'
+
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            async def _fetch():
+                resp = await client.post(
+                    self.OVERPASS_URL,
+                    data={"data": query},
+                    headers={"User-Agent": "TourGuideAI/0.1 (student project)"},
+                )
+                resp.raise_for_status()
+                return resp.json()
+
+            try:
+                data = await _retry_request(_fetch)
+            except Exception as e:
+                logger.warning(f"Charging station query failed: {e}")
+                return []
+
+        candidates: list[CandidateStop] = []
+        for element in data.get("elements", []):
+            tags = element.get("tags", {})
+            name = tags.get("name", "EV Charging Station")
+            if element["type"] == "node":
+                lat, lng = element["lat"], element["lon"]
+            elif "center" in element:
+                lat, lng = element["center"]["lat"], element["center"]["lon"]
+            else:
+                continue
+
+            along_m, nearest_idx = distance_along_polyline(lat, lng, polyline_points)
+            osm_id = f"osm_{element['type']}_{element['id']}"
+
+            candidates.append(CandidateStop(
+                place_id=osm_id,
+                name=name,
+                lat=lat,
+                lng=lng,
+                types=["charging_station"],
+                distance_to_route_m=0.0,
+                distance_along_route_m=along_m,
+                nearest_corridor_point_idx=nearest_idx,
+            ))
+
+        return candidates
 
     async def get_route_with_waypoints(
         self, origin: str, destination: str, waypoints: list[dict]

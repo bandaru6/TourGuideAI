@@ -76,10 +76,16 @@ class TestTourAssembler:
 
         mock_store = AsyncMock()
 
+        mock_solver_instance = MagicMock()
+        mock_solver_instance.solve.return_value = stops
+
         with patch.object(assembler.maps, "get_route", new_callable=AsyncMock) as mock_route, \
              patch("app.services.tour_assembler.build_corridor") as mock_corridor, \
              patch.object(assembler.maps, "search_places_along_corridor", new_callable=AsyncMock) as mock_search, \
+             patch("app.services.tour_assembler.deduplicate_by_name", side_effect=lambda c: c), \
+             patch("app.services.tour_assembler.cluster_candidates", side_effect=lambda c: c), \
              patch("app.services.tour_assembler.rank_candidates") as mock_rank, \
+             patch("app.services.tour_assembler.ConstraintSolver", return_value=mock_solver_instance), \
              patch("app.services.tour_assembler.build_itinerary") as mock_itin, \
              patch.object(assembler.maps, "get_route_with_waypoints", new_callable=AsyncMock) as mock_segments, \
              patch.object(assembler.gemini, "enrich_trip", new_callable=AsyncMock) as mock_gemini:

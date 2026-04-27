@@ -1,5 +1,5 @@
 import Constants from "expo-constants";
-import type { Trip, Stop, CreateTripRequest } from "../types";
+import type { Trip, Stop, CreateTripRequest, VoiceCommandResponse } from "../types";
 
 const API_BASE =
   Constants.expoConfig?.extra?.apiUrl || "http://localhost:8000";
@@ -57,10 +57,36 @@ export function startTrip(
 
 export function skipStop(
   tripId: string,
-  stopId: string
+  stopId: string,
+  lat?: number,
+  lng?: number
 ): Promise<{ status: string; remaining_stops: number }> {
   return request(`/api/trips/${tripId}/skip-stop/${stopId}`, {
     method: "POST",
+    body: lat != null && lng != null ? JSON.stringify({ lat, lng }) : undefined,
+  });
+}
+
+export function rerouteTrip(
+  tripId: string,
+  lat?: number,
+  lng?: number
+): Promise<{ status: string; stops?: number }> {
+  return request(`/api/trips/${tripId}/reroute`, {
+    method: "POST",
+    body: lat != null && lng != null ? JSON.stringify({ lat, lng }) : undefined,
+  });
+}
+
+export function sendVoiceCommand(
+  tripId: string,
+  transcript: string,
+  lat?: number,
+  lng?: number
+): Promise<VoiceCommandResponse> {
+  return request(`/api/trips/${tripId}/voice-command`, {
+    method: "POST",
+    body: JSON.stringify({ transcript, lat, lng }),
   });
 }
 

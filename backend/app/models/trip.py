@@ -19,6 +19,7 @@ class StopType(str, Enum):
     PARK = "park"
     MUSEUM = "museum"
     VIEWPOINT = "viewpoint"
+    CHARGING = "charging"
     OTHER = "other"
 
 
@@ -41,6 +42,8 @@ class CandidateStop(BaseModel):
     distance_to_route_m: float = 0.0
     distance_along_route_m: float = 0.0
     nearest_corridor_point_idx: int = 0
+    cluster_size: int = 1
+    opening_hours: str | None = None
 
 
 class Stop(BaseModel):
@@ -57,6 +60,8 @@ class Stop(BaseModel):
     detour_distance_m: float = 0.0
     score: StopScore | None = None
     fun_facts: list[FunFact] = []
+    estimated_arrival_time: str | None = None
+    open_hours: str | None = None
 
 
 class Segment(BaseModel):
@@ -65,6 +70,8 @@ class Segment(BaseModel):
     polyline: str = ""
     distance_m: float = 0.0
     duration_s: float = 0.0
+    traffic_factor: float = 0.0
+    adjusted_duration_s: float = 0.0
 
 
 class Trip(BaseModel):
@@ -78,5 +85,6 @@ class Trip(BaseModel):
     corridor: CorridorGeometry | None = None
     total_distance_m: float = 0.0
     total_duration_s: float = 0.0
+    adjusted_total_duration_s: float = 0.0
     route_polyline: str = ""
     departure_time: str | None = None

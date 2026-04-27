@@ -18,6 +18,7 @@ const TYPE_BADGES: Record<string, { label: string; bg: string; fg: string }> = {
   museum: { label: "Museum", bg: "#EDE9FE", fg: "#5B21B6" },
   gas_station: { label: "Gas", bg: "#F3F4F6", fg: "#374151" },
   rest_area: { label: "Rest", bg: "#F3F4F6", fg: "#374151" },
+  charging: { label: "EV Charging", bg: "#DCFCE7", fg: "#166534" },
 };
 
 function ScoreBar({ label, value }: { label: string; value: number }) {
@@ -73,7 +74,28 @@ export default function StopCard({ stop, index }: Props) {
               <Text style={styles.meta}>
                 {(stop.detour_distance_m / 1000).toFixed(1)} km detour
               </Text>
+              {stop.score != null && stop.score.cluster_count > 1 && (
+                <View style={[styles.badge, { backgroundColor: "#DBEAFE" }]}>
+                  <Text style={[styles.badgeText, { color: "#1E40AF" }]}>
+                    {stop.score.cluster_count} nearby
+                  </Text>
+                </View>
+              )}
             </View>
+            {(stop.estimated_arrival_time || stop.open_hours) && (
+              <View style={styles.metaRow}>
+                {stop.estimated_arrival_time && (
+                  <Text style={styles.meta}>
+                    Arrival: {stop.estimated_arrival_time}
+                  </Text>
+                )}
+                {stop.open_hours && (
+                  <Text style={styles.meta}>
+                    Open: {stop.open_hours}
+                  </Text>
+                )}
+              </View>
+            )}
           </View>
         </View>
       </View>

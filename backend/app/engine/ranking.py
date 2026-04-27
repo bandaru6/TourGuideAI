@@ -142,7 +142,9 @@ def score_candidate(
     meal = _meal_fit_score(candidate, corridor, preferences, base_duration_s)
     timing = _timing_fit_score(candidate, corridor, preferences)
     detour = _detour_penalty_score(candidate, corridor)
-    congestion = 0.0  # stubbed for MVP
+    from app.engine.traffic import estimate_congestion
+    # Estimate congestion at stop's position (default: midday weekday)
+    congestion = estimate_congestion(candidate.lat, candidate.lng, 12.0, 1)
 
     total = (
         w.preference * pref
@@ -163,10 +165,11 @@ def score_candidate(
         meal_fit=round(meal, 3),
         timing_fit=round(timing, 3),
         detour_penalty=round(1.0 - detour, 3),
-        congestion_penalty=congestion,
+        congestion_penalty=round(congestion, 3),
         total_score=round(total, 3),
         selection_reason=reason,
         weights=w,
+        cluster_count=candidate.cluster_size,
     )
 
 
